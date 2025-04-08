@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dynamic Player Match Table</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 8px;
+      margin: 5px;
+    }
+
+    button {
+      padding: 8px 15px;
+      margin: 5px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    table {
+      margin-top: 30px;
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 1000px;
+      background-color: white;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .winner {
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Dynamic Player Match Table</h2>
+
+  <div>
+    <input type="text" id="playerName" placeholder="Enter player name" />
+    <button onclick="addPlayer()">Add Player</button>
+    <button onclick="createMatch()">Start Match</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Player 1</th>
+        <th>Player 2</th>
+        <th>Total Win Score</th>
+        <th>Player 1 Score</th>
+        <th>Player 2 Score</th>
+        <th>Winner</th>
+      </tr>
+    </thead>
+    <tbody id="matchTableBody"></tbody>
+  </table>
+
+  <script>
+    let players = [];
+
+    function addPlayer() {
+      const nameInput = document.getElementById("playerName");
+      const name = nameInput.value.trim();
+      if (name) {
+        players.push(name);
+        alert(`${name} added! Total Players: ${players.length}`);
+        nameInput.value = "";
+      } else {
+        alert("Please enter a valid name.");
+      }
+    }
+
+    function getRandomPlayers() {
+      if (players.length < 2) {
+        alert("Add at least 2 players to start a match.");
+        return null;
+      }
+
+      const shuffled = players.slice().sort(() => 0.5 - Math.random());
+      return [shuffled[0], shuffled[1]];
+    }
+
+    function createMatch() {
+      const playerPair = getRandomPlayers();
+      if (!playerPair) return;
+
+      const totalWin = Math.floor(Math.random() * 11) + 5; // 5 to 15
+      const p1Score = Math.floor(Math.random() * (totalWin + 1));
+      const p2Score = Math.floor(Math.random() * (totalWin + 1));
+
+      let winner = "Draw";
+      if (p1Score > p2Score) {
+        winner = playerPair[0];
+      } else if (p2Score > p1Score) {
+        winner = playerPair[1];
+      }
+
+      const row = `
+        <tr>
+          <td>${playerPair[0]}</td>
+          <td>${playerPair[1]}</td>
+          <td>${totalWin}</td>
+          <td>${p1Score}</td>
+          <td>${p2Score}</td>
+          <td class="winner">${winner}</td>
+        </tr>
+      `;
+
+      document.getElementById("matchTableBody").insertAdjacentHTML('beforeend', row);
+    }
+  </script>
+
+</body>
+</html>
