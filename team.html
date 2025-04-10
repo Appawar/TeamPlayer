@@ -41,73 +41,209 @@
     tr:hover {
       background-color: #e6f7ff;
     }
-    h3{
+
+    h3 {
       text-align: center;
     }
+
+    .form-container {
+      margin: 20px auto;
+      text-align: center;
+    }
+
+    .delete-btn {
+      color: red;
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
   </style>
+  <script>
+    // Retrieve the players list from localStorage or set it to an empty array
+    const players = JSON.parse(localStorage.getItem('players')) || [];
+    const matches = JSON.parse(localStorage.getItem('matches')) || [];
+    let pairedPlayers = []; // List to track paired players
+
+    // Function to add a player manually
+    function addPlayerManually() {
+      const playerName = document.getElementById('playerName').value.trim();
+      if (playerName && !players.includes(playerName)) {
+        players.push(playerName);
+        renderPlayerTable();
+        localStorage.setItem('players', JSON.stringify(players));  // Save players to localStorage
+        generateMatches();
+        document.getElementById('playerName').value = '';  // Clear the input field
+      } else {
+        alert('Please enter a valid, unique player name.');
+      }
+    }
+
+    // Function to render players in the player table
+    function renderPlayerTable() {
+      const tbody = document.querySelector('#playerTable tbody');
+      tbody.innerHTML = '';
+      players.forEach((name, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${name}</td><td><button class="delete-btn" onclick="deletePlayer(${index})">Delete</button></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Function to delete a player from the list
+    function deletePlayer(index) {
+      players.splice(index, 1);  // Remove player from the array
+      renderPlayerTable();
+      localStorage.setItem('players', JSON.stringify(players));  // Update localStorage
+      generateMatches();  // Re-generate matches
+    }
+
+    // Function to handle CSV file upload
+    function handleCSVUpload(event) {
+      const file = event.target.files[0];
+      if (file && file.type === 'text/csv') {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const contents = e.target.result;
+          const playerNames = parseCSV(contents);
+          playerNames.forEach(name => addPlayer(name));
+          document.querySelector('input[type="file"]').disabled = true;
+        };
+        reader.readAsText(file);
+      } else {
+        alert("Please upload a valid CSV file.");
+      }
+    }
+
+    // Function to parse CSV and return player names
+    function parseCSV(csvData) {
+      const rows = csvData.split('\n');
+      return rows.map(row => row.trim()).filter(name => name !== '');
+    }
+
+    // Function to shuffle an array (Fisher-Yates shuffle)
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];  // Swap elements
+      }
+    }
+
+    // Function to generate match pairings from players
+    function generateMatches() {
+      const matchTableBody = document.querySelector('#matchTable tbody');
+      matchTableBody.innerHTML = '';
+      matches.length = 0; // Clear existing matches array
+      pairedPlayers = []; // Reset paired players
+
+      if (players.length < 2) {
+        alert('There should be at least 2 players to generate matches.');
+        return;
+      }
+
+      // Shuffle the players to randomize pairings
+      shuffleArray(players);
+
+      // Ensure that we only create as many matches as there are pairs
+      const numMatches = Math.floor(players.length / 2); // Ensure each player is paired once
+      for (let i = 0; i < numMatches; i++) {
+        const player1 = players[i * 2];    // Select every other player for player 1
+        const player2 = players[i * 2 + 1]; // Select the next player for player 2
+        const date = new Date();
+        const time = date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+        const today = date.toISOString().split('T')[0];
+
+        // Generate random score for the match
+        const score1 = Math.floor(Math.random() * 16);
+        const score2 = Math.floor(Math.random() * 16);
+
+        // Store the match
+        const match = {
+          player1,
+          player2,
+          time,
+          date: today,
+          score: `${score1} - ${score2}`
+        };
+
+        // Add the match to the matches array and update localStorage
+        matches.push(match);
+        localStorage.setItem('matches', JSON.stringify(matches));
+
+        // Display match on the page
+        const matchRow = document.createElement('tr');
+        matchRow.innerHTML = `
+          <td>${player1}</td>
+          <td>${player2}</td>
+          <td>${time}</td>
+          <td>${today}</td>
+          <td>${score1} - ${score2}</td>
+          <td><button class="delete-btn" onclick="deleteMatch(${matches.length - 1})">Delete</button></td>
+        `;
+        matchTableBody.appendChild(matchRow);
+
+        // Mark players as paired
+        pairedPlayers.push(player1);
+        pairedPlayers.push(player2);
+      }
+    }
+
+    // Function to delete a match from the table
+    function deleteMatch(index) {
+      const match = matches.splice(index, 1);  // Remove match from the array
+      localStorage.setItem('matches', JSON.stringify(matches));  // Update localStorage
+      generateMatches();  // Re-generate matches
+    }
+
+    // Render tables on page load
+    window.onload = function() {
+      renderPlayerTable();
+      if (players.length >= 2) {
+        generateMatches(); // If players are loaded, generate matches
+      }
+    }
+  </script>
 </head>
 <body>
 
   <h2>Tennis Match</h2>
-  <h3 class="h">Register student</h3>
+  <h3>Register Players</h3>
 
+  <!-- Manual Player Addition Form -->
+  <div class="form-container">
+    <input type="text" id="playerName" placeholder="Enter Player Name">
+    <button onclick="addPlayerManually()">Add Player</button>
+  </div>
 
-  <table>
+  <!-- File input for CSV upload -->
+  <input type="file" accept=".csv" onchange="handleCSVUpload(event)" />
+
+  <h3>Player List</h3>
+  <table id="playerTable">
     <thead>
       <tr>
         <th>Player Name</th>
-        
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>John</td>
-        
-      </tr>
-      <tr>
-        <td>Ana</td>
-         
-      </tr>
-      <tr>
-        <td>Chris</td>
-         
-      </tr>
+      <!-- Dynamically generated players will appear here -->
     </tbody>
   </table>
 
-  <h2>Player Vs Player</h2>
-  <table>
+  <h2>Match Pairings</h2>
+  <table id="matchTable">
     <thead>
       <tr>
         <th>Player 1</th>
         <th>Player 2</th>
         <th>Time</th>
         <th>Date</th>
-        <th>Total Score</th>
+        <th>Score</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>John</td>
-        <td>Mike</td>
-        <td>10:00</td>
-        <td>2020-01-01</td>
-        <td>15 - 12</td>
-      </tr>
-      <tr>
-        <td>Ana</td>
-        <td>Lisa</td>
-        <td>10:00</td>
-        <td>2020-01-01</td>
-        <td>10 - 6</td>
-      </tr>
-      <tr>
-        <td>Chris</td>
-        <td>Emma</td>
-        <td>10:00</td>
-        <td>2020-01-01</td>
-        <td>7 - 11</td>
-      </tr>
+      <!-- Match pairings and scores will appear here -->
     </tbody>
   </table>
 
