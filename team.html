@@ -1,251 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Tennis Match Table</title>
+  <meta charset="UTF-8" />
+  <title>Static Player Match</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 30px;
-      background-color: #f2f2f2;
-    }
-
-    h2 {
-      text-align: center;
-      color: #333;
-    }
-
-    table {
-      width: 80%;
-      margin: 0 auto;
-      border-collapse: collapse;
-      background-color: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    th, td {
-      padding: 12px 15px;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
-
-    th {
-      background-color: #007bff;
-      color: #fff;
-    }
-
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-
-    tr:hover {
-      background-color: #e6f7ff;
-    }
-
-    h3 {
-      text-align: center;
-    }
-
-    .form-container {
-      margin: 20px auto;
-      text-align: center;
-    }
-
-    .delete-btn {
-      color: red;
-      cursor: pointer;
-      border: none;
-      background: none;
-    }
+    body { font-family: Arial; padding: 20px; background: #f0f0f0; }
+    table { width: 100%; margin-top: 10px; border-collapse: collapse; background: white; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
+    th { background: #007bff; color: white; }
+    button { padding: 5px 10px; }
   </style>
-  <script>
-    // Retrieve the players list from localStorage or set it to an empty array
-    const players = JSON.parse(localStorage.getItem('players')) || [];
-    const matches = JSON.parse(localStorage.getItem('matches')) || [];
-    let pairedPlayers = []; // List to track paired players
-
-    // Function to add a player manually
-    function addPlayerManually() {
-      const playerName = document.getElementById('playerName').value.trim();
-      if (playerName && !players.includes(playerName)) {
-        players.push(playerName);
-        renderPlayerTable();
-        localStorage.setItem('players', JSON.stringify(players));  // Save players to localStorage
-        generateMatches();
-        document.getElementById('playerName').value = '';  // Clear the input field
-      } else {
-        alert('Please enter a valid, unique player name.');
-      }
-    }
-
-    // Function to render players in the player table
-    function renderPlayerTable() {
-      const tbody = document.querySelector('#playerTable tbody');
-      tbody.innerHTML = '';
-      players.forEach((name, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${name}</td><td><button class="delete-btn" onclick="deletePlayer(${index})">Delete</button></td>`;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // Function to delete a player from the list
-    function deletePlayer(index) {
-      players.splice(index, 1);  // Remove player from the array
-      renderPlayerTable();
-      localStorage.setItem('players', JSON.stringify(players));  // Update localStorage
-      generateMatches();  // Re-generate matches
-    }
-
-    // Function to handle CSV file upload
-    function handleCSVUpload(event) {
-      const file = event.target.files[0];
-      if (file && file.type === 'text/csv') {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const contents = e.target.result;
-          const playerNames = parseCSV(contents);
-          playerNames.forEach(name => addPlayer(name));
-          document.querySelector('input[type="file"]').disabled = true;
-        };
-        reader.readAsText(file);
-      } else {
-        alert("Please upload a valid CSV file.");
-      }
-    }
-
-    // Function to parse CSV and return player names
-    function parseCSV(csvData) {
-      const rows = csvData.split('\n');
-      return rows.map(row => row.trim()).filter(name => name !== '');
-    }
-
-    // Function to shuffle an array (Fisher-Yates shuffle)
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];  // Swap elements
-      }
-    }
-
-    // Function to generate match pairings from players
-    function generateMatches() {
-      const matchTableBody = document.querySelector('#matchTable tbody');
-      matchTableBody.innerHTML = '';
-      matches.length = 0; // Clear existing matches array
-      pairedPlayers = []; // Reset paired players
-
-      if (players.length < 2) {
-        alert('There should be at least 2 players to generate matches.');
-        return;
-      }
-
-      // Shuffle the players to randomize pairings
-      shuffleArray(players);
-
-      // Ensure that we only create as many matches as there are pairs
-      const numMatches = Math.floor(players.length / 2); // Ensure each player is paired once
-      for (let i = 0; i < numMatches; i++) {
-        const player1 = players[i * 2];    // Select every other player for player 1
-        const player2 = players[i * 2 + 1]; // Select the next player for player 2
-        const date = new Date();
-        const time = date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-        const today = date.toISOString().split('T')[0];
-
-        // Generate random score for the match
-        const score1 = Math.floor(Math.random() * 16);
-        const score2 = Math.floor(Math.random() * 16);
-
-        // Store the match
-        const match = {
-          player1,
-          player2,
-          time,
-          date: today,
-          score: `${score1} - ${score2}`
-        };
-
-        // Add the match to the matches array and update localStorage
-        matches.push(match);
-        localStorage.setItem('matches', JSON.stringify(matches));
-
-        // Display match on the page
-        const matchRow = document.createElement('tr');
-        matchRow.innerHTML = `
-          <td>${player1}</td>
-          <td>${player2}</td>
-          <td>${time}</td>
-          <td>${today}</td>
-          <td>${score1} - ${score2}</td>
-          <td><button class="delete-btn" onclick="deleteMatch(${matches.length - 1})">Delete</button></td>
-        `;
-        matchTableBody.appendChild(matchRow);
-
-        // Mark players as paired
-        pairedPlayers.push(player1);
-        pairedPlayers.push(player2);
-      }
-    }
-
-    // Function to delete a match from the table
-    function deleteMatch(index) {
-      const match = matches.splice(index, 1);  // Remove match from the array
-      localStorage.setItem('matches', JSON.stringify(matches));  // Update localStorage
-      generateMatches();  // Re-generate matches
-    }
-
-    // Render tables on page load
-    window.onload = function() {
-      renderPlayerTable();
-      if (players.length >= 2) {
-        generateMatches(); // If players are loaded, generate matches
-      }
-    }
-  </script>
 </head>
 <body>
 
-  <h2>Tennis Match</h2>
-  <h3>Register Players</h3>
+  <h2>Static Player List</h2>
 
-  <!-- Manual Player Addition Form -->
-  <div class="form-container">
-    <input type="text" id="playerName" placeholder="Enter Player Name">
-    <button onclick="addPlayerManually()">Add Player</button>
-  </div>
+  <input type="text" id="playerInput" placeholder="Enter Player Name">
+  <button onclick="addPlayer()">Add Player</button>
+  <button onclick="generateMatches()">Generate Matches</button>
 
-  <!-- File input for CSV upload -->
-  <input type="file" accept=".csv" onchange="handleCSVUpload(event)" />
-
-  <h3>Player List</h3>
   <table id="playerTable">
     <thead>
-      <tr>
-        <th>Player Name</th>
-        <th>Actions</th>
-      </tr>
+      <tr><th>Player</th><th>Action</th></tr>
     </thead>
-    <tbody>
-      <!-- Dynamically generated players will appear here -->
-    </tbody>
+    <tbody></tbody>
   </table>
 
-  <h2>Match Pairings</h2>
+  <h3>Match Pairings</h3>
   <table id="matchTable">
     <thead>
-      <tr>
-        <th>Player 1</th>
-        <th>Player 2</th>
-        <th>Time</th>
-        <th>Date</th>
-        <th>Score</th>
-        <th>Actions</th>
-      </tr>
+      <tr><th>Player 1</th><th>Player 2</th><th>Score</th></tr>
     </thead>
-    <tbody>
-      <!-- Match pairings and scores will appear here -->
-    </tbody>
+    <tbody></tbody>
   </table>
 
+  <script>
+    // ✅ Static hardcoded array
+    let players = ["John", "Ana", "Chris", "Lisa", "Mike", "Emma"];
+    let matches = [];
+
+    function renderPlayers() {
+      const tbody = document.querySelector("#playerTable tbody");
+      tbody.innerHTML = "";
+      players.forEach((p, index) => {
+        const row = `<tr>
+          <td>${p}</td>
+          <td><button onclick="deletePlayer(${index})">Delete</button></td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    function addPlayer() {
+      const name = document.getElementById("playerInput").value.trim();
+      if (name && !players.includes(name)) {
+        players.push(name);
+        renderPlayers();
+        document.getElementById("playerInput").value = "";
+      }
+    }
+
+    function deletePlayer(index) {
+      players.splice(index, 1);
+      renderPlayers();
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function generateMatches() {
+      const tbody = document.querySelector("#matchTable tbody");
+      tbody.innerHTML = "";
+      matches = [];
+
+      const tempPlayers = [...players];
+      shuffle(tempPlayers);
+
+      for (let i = 0; i < tempPlayers.length - 1; i += 2) {
+        const p1 = tempPlayers[i];
+        const p2 = tempPlayers[i + 1];
+        const score = `${Math.floor(Math.random() * 10)} - ${Math.floor(Math.random() * 10)}`;
+        matches.push({ p1, p2, score });
+      }
+
+      matches.forEach(match => {
+        const row = `<tr>
+          <td>${match.p1}</td>
+          <td>${match.p2}</td>
+          <td>${match.score}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    // Initial render
+    window.onload = renderPlayers;
+  </script>
 </body>
 </html>
