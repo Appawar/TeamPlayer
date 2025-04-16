@@ -1,3 +1,4 @@
+
 let players = ["VishWajit", "Aajay", "Atherva", "rithik", "Divyap", "Harshal", "Shubhangi", "Harshda", "Viraj", "AjayA", "Shruti", "Raksha", "Mangesh", "shreyas", "Mansi", "Pournima", "Mohini","Nidhi", "Rehan","Gauri", "Soham", "Aishwarya"];
 let matches = [];
 let matchHistory = JSON.parse(localStorage.getItem("matchHistory") || "[]");
@@ -176,4 +177,43 @@ const firebaseConfig = {
   // Initialize Firebase
   const app = firebase.initializeApp(firebaseConfig);
   const database = firebase.database(); // Initialize Realtime Database (for example)
+
+  const ref = database.ref('players'); // Reference to a path in the database
+
+// Read data
+ref.on('value', (snapshot) => {
+  const data = snapshot.val();
+  console.log(data); // Do something with the data
+});
+
+// Write data
+ref.set({
+  name: "Player1",
+  score: 10
+});
+const auth = firebase.auth();
+
+// Sign in a user
+auth.signInWithEmailAndPassword("user@example.com", "password123")
+  .then((userCredential) => {
+    const user = userCredential.user;
+    console.log("User signed in: ", user);
+  })
+  .catch((error) => {
+    console.error("Error signing in: ", error);
+  });
+  const db = firebase.firestore();
+
+  // Add a new document to a collection
+  db.collection("players").add({
+    name: "Player2",
+    score: 15
+  })
+  .then((docRef) => {
+    console.log("Document written with ID: ", docRef.id);
+  })
+  .catch((error) => {
+    console.error("Error adding document: ", error);
+  });
+  
   
