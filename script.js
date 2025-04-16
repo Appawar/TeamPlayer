@@ -161,3 +161,19 @@ function clearMatchHistory() {
 
 renderPlayers();
 renderMatchHistory();
+
+// Firebase configuration object (from Firebase Console)
+const firebaseConfig = {
+    apiKey: "AIzaSyBULDhQMRtdUm8VEwHoTfSWWJPtPPPIY5s",
+    authDomain: "table-tennis-match.firebaseapp.com",
+    projectId: "table-tennis-match",
+    storageBucket: "table-tennis-match.firebasestorage.app",
+    messagingSenderId: "897431867959",
+    appId: "1:897431867959:web:3f40bff5621a3f34b1a5b2",
+    measurementId: "G-65DJWZRSCV"
+  };
+  
+  // Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const database = firebase.database(); // Initialize Realtime Database (for example)
+  
